@@ -4,14 +4,14 @@
 
 	define('NONBLOCK', 0);
 
-	function sockFactory($sockNum){
+	function sockFactory($sockNum, $host){
 		$memory = array();
 		for( $i = 0 ; $i < $sockNum ; $i ++ ){
 			$single = array(
-				'fd'=>sock(NONBLOCK),
+				'fd'=>sock(NONBLOCK, $host),
 				'writeBuffer'=>
 					"GET / HTTP/1.1\n".
-					"Host: www.baidu.com\n".
+					"Host: ".$host."\n".
 					"Connection:close\n\n",
 				'readBuffer'=>''
 			);
@@ -20,8 +20,8 @@
 		return $memory;
 	}
 
-	function nonblock($sockNum, $fp){
-		$memory = sockFactory($sockNum);
+	function nonblock($sockNum, $fp, $host){
+		$memory = sockFactory($sockNum, $host);
 		$convenient_read_block=1024;
 		$timeout = 30;
 
@@ -86,8 +86,8 @@
 					assert('$index !== null');
 					
 					//写入
-					$haveWrite = fwrite($w,$memory[$i]['writeBuffer']);
-					$memory[$i]['writeBuffer'] = substr( $memory[$i]['writeBuffer'] , $haveWrite );
+					$haveWrite = fwrite($w,$memory[$index]['writeBuffer']);
+					$memory[$index]['writeBuffer'] = substr( $memory[$index]['writeBuffer'] , $haveWrite );
 				}
 			}
 		}

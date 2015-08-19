@@ -2,7 +2,7 @@
 
 	require_once(dirname(__FILE__)."/block.php");
 
-	function forkBlock($sockNum,$fp, $forkNum){
+	function forkBlock($sockNum,$fp, $host, $forkNum){
 
 		$childs = array();
 		for( $i = 0; $i < $forkNum ; $i ++ ){
@@ -11,7 +11,7 @@
 			if( $pid == -1 ){
 				die('could not fork');
 			}else if( $pid == 0 ){
-				block($sockNum/$forkNum, $fp);
+				block($sockNum/$forkNum, $fp, $host);
 				exit(0);
 			}else{
 				$childs[] = $pid;

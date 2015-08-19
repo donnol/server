@@ -42,7 +42,7 @@ function run_client($sockNum, $forkNum){
 }
 */
 
-function run_client($sockNum,$forkNum){	
+function run_client($sockNum, $host, $forkNum){	
 	$task = array(
 			'block',
 			'nonblock',
@@ -59,6 +59,7 @@ function run_client($sockNum,$forkNum){
 			$task[$i],	
 			$sockNum,
 			$file,
+			$host,
 			$forkNum
 		);
 
@@ -68,4 +69,4 @@ function run_client($sockNum,$forkNum){
 	}
 }
 
-run_client($argv[1], $argv[2]);
+run_client($argv[2], $argv[1], $argv[3]);

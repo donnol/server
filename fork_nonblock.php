@@ -2,16 +2,15 @@
 
 	require_once(dirname(__FILE__)."/nonblock.php");
 
-	function forkNonblock($sockNum, $fp,$forkNum){
+	function forkNonblock($sockNum, $fp, $host, $forkNum){
 		$childs = array();
-		$memory = array();
 		for( $i = 0; $i < $forkNum; $i ++ ){
 			$pid = pcntl_fork();
 
 			if( $pid == -1 ){
 				die('count not fork');
 			}else if( $pid == 0 ){
-				nonblock($sockNum/$forkNum, $fp);
+				nonblock($sockNum/$forkNum, $fp, $host);
 				exit(0);
 			}else{
 				$childs[] = $pid;
