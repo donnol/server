@@ -2,7 +2,7 @@
 	
 	require_once(dirname(__FILE__)."/common.php");
 
-	define('NONBLOCK', 1);
+	define('NONBLOCK', 0);
 
 	function sockFactory($sockNum, $host){
 		$memory = array();

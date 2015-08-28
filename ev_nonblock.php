@@ -39,22 +39,14 @@
 
 	function ev_select($memory){
 		global $base;
-		//$splitFd = ev_split($memory);
+
 		$readFd = array_map(function($single){
 			return $single['fd'];
 		},$memory);
 		$writeFd = $readFd;
-		//$readFd = $splitFd['readFd'];
-		//$writeFd = $splitFd['writeFd'];
 
-		/*$base = */ev_base();
-		/*
-		foreach( $readFd as $singleRead ){
-			$event = ev_event($singleRead, 'read');
-			if( $event === false )
-				die('add event error'.chr(10));
-		}
-		*/
+		ev_base();
+		
 		foreach( $writeFd as $singleWrite ){
 			$event = ev_event($singleWrite, 'write');
 			if( $event === false )
@@ -65,24 +57,22 @@
 	}
 
 	//每个时间绑定一个连接
-	function ev_event(/*$base, */$socket, $mode){
+	function ev_event($socket, $mode){
 		global $base;
+		global $eventMap;
 		$event = event_new();
 		if( $event === false )
 			die('new event error'.chr(10));
 
 		if( $mode == "read" ){
-			$set = event_set($event, $socket, EV_READ , 'ev_read'/*, $base*/);
+			$set = event_set($event, $socket, EV_READ , 'ev_read');
 			if( $set === false )
 				die('set event error'.chr(10));
 		}else if( $mode == 'write' ){
-			$set = event_set($event, $socket, EV_WRITE , 'ev_write'/*, $base*/);
+			$set = event_set($event, $socket, EV_WRITE , 'ev_write');
 			if( $set === false )
 				die('set event error'.chr(10));
 		}
-		var_dump($socket);
-		var_dump($event);
-		var_dump($base);
 		$baseSet = event_base_set($event, $base);
 		if( $baseSet === false )
 			die('set event base error'.chr(10));
@@ -91,7 +81,7 @@
 		if( $eventAdd === false )
 			die('add event error'.chr(10));
 
-		$eventMap[$socket] = $event;
+		$eventMap[$socket] = $event;		//将event保存到全局数组中，防止被gc回收；不保存将导致event被删除
 		return $event;
 	}
 
@@ -104,7 +94,7 @@
 		return $base;
 	}
 
-	function ev_loop(/*$base*/){
+	function ev_loop(){
 		global $base;
 		$flag = event_base_loop($base);		//一个就好
 		if( $flag == 0 ){
@@ -119,9 +109,10 @@
 	function ev_read($socket, $flag/*, $base*/){
 		//check read
 		global $base;
-		var_dump("ev_read");
+		global $eventMap;
 		global $connections;
 		global $file;
+
 		$index = null;
 		foreach( $connections as $i=>$singleMemory ){
 			if( $singleMemory['fd'] != $socket )
@@ -133,22 +124,26 @@
 
 		//获得数据
 		$data = fread($socket,1024);
-		var_dump($data);
-		$connections['readBuffer'] .= $data;
+		$connections[$index]['readBuffer'] .= $data;
 
 		//关闭资源
 		if( strlen($data) == 0 ){
-			fwrite($file, $connections[$index]['readBuffer']);
+			$haveWrite = fwrite($file, $connections[$index]['readBuffer']);
 			fclose($socket);
 			unset($connections[$index]);
+			//unset($eventMap[$socket]);
+		}else{
+			$event = ev_event($socket, 'read');
+			if( $event === false )
+				die('add event error'.chr(10));
 		}
 	}
 
-	function ev_write($socket, $flag/*, $base*/){
+	function ev_write($socket, $flag){
 		//check write
-		var_dump("write");
 		global $connections;
 		global $base;
+
 		$index = null;
 		foreach( $connections as $i=>$singleMemory ){
 			if( $singleMemory['fd'] != $socket )
@@ -167,11 +162,8 @@
 			$event = ev_event($socket, 'read');
 			if( $event === false )
 				die('add event error'.chr(10));
-
-			//$data = fread($socket,1280);
-			//var_dump($data);
 		}else{
-			$event = ev_event(/*$base,*/ $socket, 'write');
+			$event = ev_event($socket, 'write');
 			if( $event === false )
 				die('add event error'.chr(10));
 		}
@@ -182,6 +174,7 @@
 
 		global $connections;
 		global $file;
+		global $eventMap;
 
 		$connections = sockFactory($sockNum, $host);
 
@@ -191,6 +184,8 @@
 		ev_nonblock($connections);
 
 		fclose($file);
+
+		unset($eventMap);
 
 		$endTime = getMillisecond();
 		echo "ev_nonblock.txt => size: ".filesize($fileName).'bytes'.', time : '.($endTime - $beginTime).'ms'.chr(10);
