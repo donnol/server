@@ -11,32 +11,6 @@
 		ev_select($connections);
 	}
 
-	function ev_split($memory){
-
-		$readFd = array_filter($memory,function($single){
-			if( strlen($single['writeBuffer']) == 0 )
-				return true;
-			else
-				return false;
-		});
-		$readFd = array_column($readFd,'fd');
-
-		$writeFd = array_filter($memory,function($single){
-			if( strlen($single['writeBuffer']) != 0 )
-				return true;
-			else
-				return false;
-		});
-		$writeFd = array_column($writeFd,'fd');
-
-		assert('count($readFd) != 0 || count($writeFd) != 0');
-
-		return array(
-			'readFd'=>$readFd,
-			'writeFd'=>$writeFd,
-		);
-	}
-
 	function ev_select($memory){
 		global $base;
 
@@ -87,7 +61,9 @@
 		if( $eventAdd === false )
 			die('add event error'.chr(10));
 
-		$eventMap[$socket][$mode] = $event;		//将event保存到全局数组中，防止被gc回收；否则event会被删除,导致no event register
+		//$eventMap[$socket][$mode] = $event;		//将event保存到全局数组中，防止被gc回收；否则event会被删除,导致no event register
+		$eventMap[$socket] = $event;
+
 		return $event;
 	}
 
@@ -176,8 +152,6 @@
 	}
 
 	function run_ev_nonblock($sockNum, $fd, $host){
-		//$beginTime = getMillisecond();
-
 		global $connections;
 		global $file;
 		global $eventMap;
@@ -185,17 +159,7 @@
 		$connections = sockFactory($sockNum, $host);
 		$file = $fd;
 
-		//$fileName = 'ev_nonblock.txt';
-		//$file = fopen($fileName, 'wb');
-
 		ev_nonblock($connections);
 
-		//fclose($file);
-
 		unset($eventMap);
-
-		//$endTime = getMillisecond();
-		//echo "ev_nonblock.txt => size: ".filesize($fileName).'bytes'.', time : '.($endTime - $beginTime).'ms'.chr(10);
 	}
-
-	//run($argv[1], $argv[2]);
