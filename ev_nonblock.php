@@ -47,6 +47,12 @@
 
 		ev_base();
 		
+		foreach( $readFd as $singleRead ){
+			$event = ev_event($singleRead, 'read');
+			if( $event === false )
+				die('add event error'.chr(10));
+		}
+
 		foreach( $writeFd as $singleWrite ){
 			$event = ev_event($singleWrite, 'write');
 			if( $event === false )
@@ -81,7 +87,7 @@
 		if( $eventAdd === false )
 			die('add event error'.chr(10));
 
-		$eventMap[$socket] = $event;		//将event保存到全局数组中，防止被gc回收；不保存将导致event被删除
+		$eventMap[$socket][$mode] = $event;		//将event保存到全局数组中，防止被gc回收；否则event会被删除,导致no event register
 		return $event;
 	}
 
@@ -169,26 +175,27 @@
 		}
 	}
 
-	function run($host, $sockNum){
-		$beginTime = getMillisecond();
+	function run_ev_nonblock($sockNum, $fd, $host){
+		//$beginTime = getMillisecond();
 
 		global $connections;
 		global $file;
 		global $eventMap;
 
 		$connections = sockFactory($sockNum, $host);
+		$file = $fd;
 
-		$fileName = 'ev_nonblock.txt';
-		$file = fopen($fileName, 'wb');
+		//$fileName = 'ev_nonblock.txt';
+		//$file = fopen($fileName, 'wb');
 
 		ev_nonblock($connections);
 
-		fclose($file);
+		//fclose($file);
 
 		unset($eventMap);
 
-		$endTime = getMillisecond();
-		echo "ev_nonblock.txt => size: ".filesize($fileName).'bytes'.', time : '.($endTime - $beginTime).'ms'.chr(10);
+		//$endTime = getMillisecond();
+		//echo "ev_nonblock.txt => size: ".filesize($fileName).'bytes'.', time : '.($endTime - $beginTime).'ms'.chr(10);
 	}
 
-	run($argv[1], $argv[2]);
+	//run($argv[1], $argv[2]);

@@ -2,6 +2,7 @@
 
 require_once(dirname(__FILE__)."/fork_block.php");
 require_once(dirname(__FILE__)."/fork_nonblock.php");
+require_once(dirname(__FILE__)."/ev_nonblock.php");
 
 /*
 function run_block($sockNum, $forkNum){
@@ -47,7 +48,8 @@ function run_client($sockNum, $host, $forkNum){
 			'block',
 			'nonblock',
 			'forkBlock',
-			'forkNonBlock'
+			'forkNonBlock',
+			'run_ev_nonblock',
 			);
 
 	for( $i = 0 ; $i != count($task) ; $i++ ){
@@ -56,7 +58,7 @@ function run_client($sockNum, $host, $forkNum){
 		$file = fopen( $fileName,'wb');
 		
 		call_user_func(
-			$task[$i],	
+			$task[$i],
 			$sockNum,
 			$file,
 			$host,
