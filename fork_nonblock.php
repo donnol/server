@@ -3,6 +3,9 @@
 	require_once(dirname(__FILE__)."/nonblock.php");
 
 	function forkNonblock($sockNum, $fp, $host, $forkNum){
+		if( $sockNum % $forkNum != 0 )
+			die("请输入整倍数".chr(10));
+
 		$childs = array();
 		for( $i = 0; $i < $forkNum; $i ++ ){
 			$pid = pcntl_fork();

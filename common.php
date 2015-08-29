@@ -10,10 +10,10 @@
 	function sock($isBlock, $host){
 		$fp = fsockopen($host, 80, $errno, $errstr, 30);
 		if ( ! $fp )
-			die('error fsockopen');
+			die('fsockopen error');
 
 		if( ! stream_set_blocking($fp, $isBlock) )
-			die('error set block');
+			die('set blocking error');
 
 		return $fp;						//fp -> resource() of type (stream)
 	}

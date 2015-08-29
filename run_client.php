@@ -3,6 +3,7 @@
 require_once(dirname(__FILE__)."/fork_block.php");
 require_once(dirname(__FILE__)."/fork_nonblock.php");
 require_once(dirname(__FILE__)."/ev_nonblock.php");
+require_once(dirname(__FILE__)."/fork_evnonblock.php");
 
 /*
 function run_block($sockNum, $forkNum){
@@ -45,17 +46,18 @@ function run_client($sockNum, $forkNum){
 
 function run_client($sockNum, $host, $forkNum){	
 	$task = array(
-			'block',
-			'nonblock',
-			'forkBlock',
+			//'block',
+			//'forkBlock',
+			//'nonblock',
+			//'evNonblock',
 			'forkNonBlock',
-			'run_ev_nonblock',
+			'forkEvNonblock',
 			);
 
 	for( $i = 0 ; $i != count($task) ; $i++ ){
-		$beginTime =  getMillisecond();
 		$fileName = $task[$i].'_log.txt';
 		$file = fopen( $fileName,'wb');
+		$beginTime =  getMillisecond();
 		
 		call_user_func(
 			$task[$i],
@@ -67,7 +69,8 @@ function run_client($sockNum, $host, $forkNum){
 
 		$endTime =  getMillisecond();
 		$time = $endTime - $beginTime;
-		echo $task[$i]." -> ".filesize($fileName).','.$time.chr(10);
+		echo $task[$i]." -> ".filesize($fileName).'bytes, '.$time.'ms'.chr(10);
+		sleep(1);
 	}
 }
 

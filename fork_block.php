@@ -3,6 +3,8 @@
 	require_once(dirname(__FILE__)."/block.php");
 
 	function forkBlock($sockNum,$fp, $host, $forkNum){
+		if( $sockNum % $forkNum != 0 )
+			die("请输入整数倍".chr(10));
 
 		$childs = array();
 		for( $i = 0; $i < $forkNum ; $i ++ ){

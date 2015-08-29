@@ -44,8 +44,6 @@
 			});
 			$writeFd = array_column($writeFd,'fd');
 		
-			//var_dump($readFd);
-			//var_dump($writeFd);
 			assert('count($readFd) != 0 || count($writeFd) != 0');
 				
 			//准备就绪的资源返回到read中,可能是1或多个,阻塞时无用
