@@ -95,24 +95,15 @@
 		global $connections;
 		global $file;
 
-		$index = null;
-		foreach( $connections as $i=>$singleMemory ){
-			if( $singleMemory['fd'] != $socket )
-				continue;
-			$index = $i;
-			break;
-		}
-		assert('$index !== null');
-
 		//获得数据
 		$data = fread($socket,1024);
-		$connections[$index]['readBuffer'] .= $data;
+		$connections[$socket]['readBuffer'] .= $data;
 
 		//关闭资源
 		if( strlen($data) == 0 ){
-			$haveWrite = fwrite($file, $connections[$index]['readBuffer']);
+			$haveWrite = fwrite($file, $connections[$socket]['readBuffer']);
 			fclose($socket);
-			unset($connections[$index]);
+			unset($connections[$socket]);
 			//unset($eventMap[$socket]);
 		}else{
 			$event = ev_event($socket, 'read');
@@ -123,24 +114,17 @@
 
 	function ev_write($socket, $flag){
 		//check write
+		$beginTime = getMillisecond();
+
 		global $connections;
 		global $base;
 
-		$index = null;
-		foreach( $connections as $i=>$singleMemory ){
-			if( $singleMemory['fd'] != $socket )
-				continue;
-			$index = $i;
-			break;
-		}
-		assert('$index !== null');
-
 		//写入
-		$haveWrite = fwrite($socket,$connections[$index]['writeBuffer']);
-		$strlength = strlen($connections[$index]['writeBuffer']);
-		$connections[$index]['writeBuffer'] = substr( $connections[$index]['writeBuffer'] , $haveWrite );
+		$writelength = strlen($connections[$socket]['writeBuffer']);
+		$haveWrite = fwrite($socket,$connections[$socket]['writeBuffer']);
+		$connections[$socket]['writeBuffer'] = substr( $connections[$socket]['writeBuffer'] , $haveWrite );
 
-		if( $haveWrite == $strlength ){
+		if( $haveWrite == $writelength ){
 			$event = ev_event($socket, 'read');
 			if( $event === false )
 				die('add event error'.chr(10));
@@ -149,6 +133,10 @@
 			if( $event === false )
 				die('add event error'.chr(10));
 		}
+
+		$endTime = getMillisecond();
+
+		echo "write time => ".($endTime - $beginTime).chr(10);
 	}
 
 	function run_ev_nonblock($sockNum, $fd, $host){
@@ -156,7 +144,10 @@
 		global $file;
 		global $eventMap;
 
-		$connections = sockFactory($sockNum, $host);
+		$connection = sockFactory($sockNum, $host);
+		foreach( $connection as $key=>$value ){
+			$connections[$value['fd']] = $value;
+		}
 		$file = $fd;
 
 		ev_nonblock($connections);
