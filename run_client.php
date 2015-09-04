@@ -48,8 +48,8 @@ function run_client($sockNum, $host, $forkNum){
 	$task = array(
 			//'block',
 			//'forkBlock',
-			//'nonblock',
-			//'evNonblock',
+			'nonblock',
+			'evNonblock',
 			'forkNonBlock',
 			'forkEvNonblock',
 			);

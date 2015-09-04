@@ -7,11 +7,11 @@
 	$connections = array();
 	$eventMap = array();
 
-	function ev_nonblock($connections){
-		ev_select($connections);
+	function evConnect($connections){
+		evSelect($connections);
 	}
 
-	function ev_select($memory){
+	function evSelect($memory){
 		global $base;
 
 		$readFd = array_map(function($single){
@@ -20,28 +20,28 @@
 		$writeFd = $readFd;
 
 		//新建base
-		ev_base();
+		evBase();
 		
 		//建立读事件
 		foreach( $readFd as $singleRead ){
-			$event = ev_event($singleRead, 'read');
+			$event = evEvent($singleRead, 'read');
 			if( $event === false )
 				die('add event error'.chr(10));
 		}
 
 		//建立写事件
 		foreach( $writeFd as $singleWrite ){
-			$event = ev_event($singleWrite, 'write');
+			$event = evEvent($singleWrite, 'write');
 			if( $event === false )
 				die('add event error'.chr(10));
 		}
 	
 		//循环
-		ev_loop($base);
+		evLoop($base);
 	}
 
 	//每个时间绑定一个连接
-	function ev_event($socket, $mode){
+	function evEvent($socket, $mode){
 		global $base;
 		global $eventMap;
 
@@ -50,11 +50,11 @@
 			die('new event error'.chr(10));
 
 		if( $mode == "read" ){
-			$set = event_set($event, $socket, EV_READ | EV_PERSIST, 'ev_read');		//事件一直持续，直到读完
+			$set = event_set($event, $socket, EV_READ | EV_PERSIST, 'evRead');		//事件一直持续，直到读完
 			if( $set === false )
 				die('set event error'.chr(10));
 		}else if( $mode == "write" ){
-			$set = event_set($event, $socket, EV_WRITE | EV_PERSIST, 'ev_write');	//事件一直持续，直到写完
+			$set = event_set($event, $socket, EV_WRITE | EV_PERSIST, 'evWrite');	//事件一直持续，直到写完
 			if( $set === false )
 				die('set event error'.chr(10));
 		}else{
@@ -77,7 +77,7 @@
 		return $event;
 	}
 
-	function ev_base(){
+	function evBase(){
 		global $base;
 
 		$base = event_base_new();		//一个就好
@@ -85,7 +85,7 @@
 			die('new base error'.chr(10));
 	}
 
-	function ev_loop(){
+	function evLoop(){
 		global $base;
 
 		$flag = event_base_loop($base);		//一个就好
@@ -99,7 +99,7 @@
 		*/
 	}
 
-	function ev_read($socket, $flag){
+	function evRead($socket, $flag){
 		//check read
 		global $base;
 		global $connections;
@@ -118,14 +118,14 @@
 			if( event_del($eventMap['read'][$socket]) === false )
 				die('event delete error');
 		}/*else{
-			$event = ev_event($socket, 'read');		//未读完继续更新读状态
+			$event = evEvent($socket, 'read');		//未读完继续更新读状态
 			if( $event === false )
 				die('add event error'.chr(10));
 		}
 		*/
 	}
 
-	function ev_write($socket, $flag){
+	function evWrite($socket, $flag){
 		//check write
 		global $connections;
 		global $base;
@@ -140,12 +140,12 @@
 			if( event_del($eventMap['write'][$socket]) === false )
 				die('event delete error');
 			/*
-			$event = ev_event($socket, 'read');			//写完更新为读状态
+			$event = evEvent($socket, 'read');			//写完更新为读状态
 			if( $event === false )
 				die('add event error'.chr(10));
 			*/
 		}/*else{
-			$event = ev_event($socket, 'write');		//未写完继续更新写状态
+			$event = evEvent($socket, 'write');		//未写完继续更新写状态
 			if( $event === false )
 				die('add event error'.chr(10));
 		}
@@ -164,7 +164,7 @@
 			$connections[$value['fd']] = $value;
 		}
 
-		ev_nonblock($connections);
+		evConnect($connections);
 
 		unset($eventMap);
 		//event_base_free($base);
