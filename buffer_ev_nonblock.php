@@ -15,7 +15,7 @@
 	function evBase(){
 		global $base;
 
-		$base = event_base_new();		//一个就好
+		$base = event_base_new();		//一个
 		if( $base === false )
 			die('new base error'.chr(10));
 	}
@@ -23,7 +23,7 @@
 	function evLoop(){
 		global $base;
 
-		$flag = event_base_loop($base);		//一个就好
+		$flag = event_base_loop($base);		//一个
 		if( $flag == 0 ){
 			echo 'loop success'.chr(10);
 		}else if( $flag == -1 ){
@@ -106,7 +106,7 @@
 			die("priority set failed".chr(10));
 		 */
 
-        $enable = event_buffer_enable($buffer, EV_WRITE);
+        $enable = event_buffer_enable($buffer, EV_WRITE | EV_READ);
 		if( $enable == false )
 			die("enable set failed".chr(10));
 	
@@ -128,18 +128,18 @@
 		
 		var_dump($buffer);
 		var_dump($socket);
-		event_buffer_disable($buffer, EV_WRITE);
+		//event_buffer_disable($buffer, EV_WRITE);
 		while( $data = event_buffer_read($buffer, 2048) ){
 			$connections[$socket]['readBuffer'] .= $data;
 		}
 		$haveWrite = fwrite($file, $connections[$socket]['readBuffer']);
+		//event_buffer_disable($buffer, EV_READ);
 
 		//写入数据，关闭资源
 		/*
 		if( strlen($data) == 0 ){
 			$haveWrite = fwrite($file, $connections[$socket]['readBuffer']);
 			fclose($socket);
-			event_buffer_disable($buffer, EV_READ);
 			event_buffer_free($buffer);
 			unset($connections[$socket]);			//读完关闭连接，保存结果
 			if( event_del($eventMap[$socket]) === false )
@@ -167,10 +167,13 @@
 		//$writelength = strlen($connections[$socket]['writeBuffer']);
 		//$haveWrite = fwrite($socket,$connections[$socket]['writeBuffer']);
 
+		$dataLen = strlen($connections[$socket]['writeBuffer']); 
 		$isWrite = event_buffer_write($buffer, $connections[$socket]['writeBuffer']);
+
 		if( $isWrite == false )
 			die('write failed');
-		event_buffer_enable($buffer, EV_READ | EV_PERSIST);
+
+		//event_buffer_enable($buffer, EV_READ | EV_PERSIST);
 
 		/*
 		$connections[$socket]['writeBuffer'] = substr( $connections[$socket]['writeBuffer'] , $haveWrite );
@@ -191,8 +194,11 @@
 	}
 
 	function evError($buffer, $socket){
+		//event_buffer_set_callback($buffer, 'evRead', 'evWrite', 'evError', $socket);
+		event_buffer_disable($buffer, EV_READ | EV_WRITE);
 		echo chr(10);
 		var_dump($buffer);
+		//socket 变成了int
 		var_dump($socket);
 		exit(0);
 	}

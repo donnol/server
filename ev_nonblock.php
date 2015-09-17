@@ -112,7 +112,10 @@
 
 		//写入数据，关闭资源
 		if( strlen($data) == 0 ){
+			//$fileName = 'tmp/'.$socket.'.txt';
+			//$fp = fopen($fileName, 'wb');
 			$haveWrite = fwrite($file, $connections[$socket]['readBuffer']);
+			//fclose($fp);
 			fclose($socket);
 			unset($connections[$socket]);			//读完关闭连接，保存结果
 			if( event_del($eventMap['read'][$socket]) === false )
@@ -165,6 +168,21 @@
 		}
 
 		evConnect($connections);
+
+		/*
+		$count = 0;
+		if( $dir = opendir('./tmp') ){
+			while( ($file = readdir($dir)) !== false ){
+				if( $file != '.' && $file != '..' ){
+					$fullpath ="./tmp/".$file;
+					$count += filesize($fullpath);
+					unlink($fullpath);
+				}
+			}
+			closedir($dir);
+		}
+		echo $count;
+		 */
 
 		unset($eventMap);
 		//event_base_free($base);
