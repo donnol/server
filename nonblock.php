@@ -4,11 +4,11 @@
 
 	define('NONBLOCK', 0);
 
-	function sockFactory($sockNum, $host){
+	function sockFactory($sockNum, $host, $port=80){
 		$memory = array();
 		for( $i = 0 ; $i < $sockNum ; $i ++ ){
 			$single = array(
-				'fd'=>sock(NONBLOCK, $host),
+				'fd'=>sock(NONBLOCK, $host, $port),
 				'writeBuffer'=>
 					"GET / HTTP/1.1\n".
 					"Host: ".$host."\n".
@@ -63,6 +63,7 @@
 
 					//获得数据
 					$data = fread($r,$convenient_read_block);
+					//echo $data.chr(10);
 					$memory[$index]['readBuffer'] .= $data;
 
 					//关闭资源

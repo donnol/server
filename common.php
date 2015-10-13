@@ -7,8 +7,8 @@
 		return (float)sprintf('%.0f', (floatval($s1) + floatval($s2)) * 1000); 
 	}
 
-	function sock($isBlock, $host){
-		$fp = fsockopen($host, 80, $errno, $errstr, 30);
+	function sock($isBlock, $host, $port=80){
+		$fp = fsockopen($host, $port, $errno, $errstr, 30);
 		if ( ! $fp )
 			die('fsockopen error');
 
